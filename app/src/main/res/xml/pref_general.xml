@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <header
+        android:fragment="com.znith.android.moviehub.SettingsFragment"
+        android:title="@string/pref_test">
+        <extra
+            android:name="resource"
+            android:value="pref_sort" />
+    </header>
+</preference-headers>
