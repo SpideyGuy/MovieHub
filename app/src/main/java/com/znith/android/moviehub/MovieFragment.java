@@ -1,6 +1,7 @@
 package com.znith.android.moviehub;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +40,10 @@ public class MovieFragment extends Fragment {
 
     MovieAdapter movieAdapter;
 
+    SharedPreferences sharedPreferences;
+    String changed_flag;
+    SharedPreferences.Editor session;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -47,11 +53,11 @@ public class MovieFragment extends Fragment {
 
         coverImage = (GridView) baseView.findViewById(R.id.movieGrid);
 
-        if (NetworkUtils.isConnected(getActivity())) {
-            new FetchMovieList().execute("popular");
-        } else {
-            Toast.makeText(getActivity(), "Please connect to the internet", Toast.LENGTH_SHORT).show();
-        }
+//        if (NetworkUtils.isConnected(getActivity())) {
+//            onStart();
+//        } else {
+//            Toast.makeText(getActivity(), "Please connect to the internet", Toast.LENGTH_SHORT).show();
+//        }
 
         return baseView;
     }
@@ -111,7 +117,8 @@ public class MovieFragment extends Fragment {
                 }
                 movieList = buffer.toString();
                 try {
-                    return getMovieList(movieList);
+                    ArrayList<MovieModel> movieListArray = getMovieList(movieList);
+                    return movieListArray;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -189,6 +196,38 @@ public class MovieFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        updateMovie();
+
+        String firstLog;
+        sharedPreferences = getActivity().getSharedPreferences("session_data", Context.MODE_PRIVATE);
+        changed_flag = sharedPreferences.getString(getString(R.string.changed_flag), "");
+
+        Log.d("flag", changed_flag);
+
+        firstLog = sharedPreferences.getString("firstLog", "1");
+
+        Log.d("firstLog", firstLog);
+
+        if (changed_flag.equalsIgnoreCase("Changed") || firstLog.equalsIgnoreCase("1")) {
+            updateMovie();// fetch the movie list
+            session = sharedPreferences.edit();
+            session.putString("firstLog", "0");
+            session.commit();
+        } else {
+            // do nothing
+        }
     }
+
+    @Override
+    public void onDestroyView() {
+        session.putString("firstLog", "1");
+        session.commit();
+        super.onDestroyView();
+    }
+
+    //    @Override
+//    public void onStop() {
+//        session.putString("firstLog", "1");
+//        session.commit();
+//        super.onStop();
+//    }
 }

@@ -1,5 +1,7 @@
 package com.znith.android.moviehub;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -131,19 +133,39 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
                 PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString(preference.getKey(), ""));
+
+
     }
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         String stringValue = newValue.toString();
 
+        SharedPreferences.Editor session;
+        SharedPreferences sharedPreferences;
+        String session_value;
+
         if (preference instanceof ListPreference) {
             // For list preferences, look up the correct display value in
             // the preference's 'entries' list (since they have separate labels/values).
             ListPreference listPreference = (ListPreference) preference;
             int prefIndex = listPreference.findIndexOfValue(stringValue);
-            if (prefIndex >= 0) {
+
+            sharedPreferences = getApplicationContext().getSharedPreferences("session_data", Context.MODE_PRIVATE);
+            session_value = sharedPreferences.getString(getString(R.string.session_value), "0");
+
+            session = sharedPreferences.edit();
+
+
+            if (prefIndex != Integer.parseInt(session_value)) {
                 preference.setSummary(listPreference.getEntries()[prefIndex]);
+                session = sharedPreferences.edit();
+                session.putString(getString(R.string.session_value), String.valueOf(prefIndex));
+                session.putString(getString(R.string.changed_flag), "Changed");
+                session.commit();
+            } else if (prefIndex == Integer.parseInt(session_value)) {
+                session.putString(getString(R.string.changed_flag), "not changed");
+                session.commit();
             }
         } else {
             // For other preferences, set the summary to the value's simple string representation.
